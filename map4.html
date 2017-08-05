@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+		<title>Demo</title>
+		<style>
+			#map {
+				height: 100%;
+			}
+			#layer {
+				position: absolute;
+				top: 50px;
+				left: 10px;
+				z-index: 5;
+				background-color: #fff;
+				padding: 5px;
+				border: 1px solid #999;
+				font-family: 'Roboto','sans-serif';
+				line-height: 10px;
+				padding-top: 10px;
+				padding-bottom: 10px;
+				padding-left: 10px;
+				padding-right: 10px;
+			}
+			html, body {
+				height: 100%;
+				margin: 0;
+				padding: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="map"></div>
+		<div id="layer">
+			<div id="food_list">
+				<input type="checkbox" id="ft_1">真菌毒素汙染檢驗結果<br>
+				<input type="checkbox" id="ft_2">調查蔬果農藥殘留<br>
+				<input type="checkbox" id="ft_3">殘留動物用藥監測結果<br>
+				<br><br>
+			</div>
+			<select id="chk_list">
+				<option id="0">東海大學</option>
+				<option id="1">逢甲大學</option>
+				<option id="2">中興大學</option>
+				<option id="3">韓國首爾麻浦區施粥點</option>
+			</select><br>
+			<br>
+			<div id="chk_layer_0">
+				<input type="checkbox" id="ft_univ_0_1">丼滋咔滋<br>
+				<input type="checkbox" id="ft_univ_0_2">佳佳快餐<br>
+				<input type="checkbox" id="ft_univ_0_3">卡小姐焗烤<br>
+				<input type="checkbox" id="ft_univ_0_4">原傳食品-早餐,自助餐<br>
+				<input type="checkbox" id="ft_univ_0_5">昕益外燴行-炒燴飯<br>
+				<input type="checkbox" id="ft_univ_0_6">晨之味<br>
+				<input type="checkbox" id="ft_univ_0_7">東太山行-冷飲<br>
+				<input type="checkbox" id="ft_univ_0_8">東太山行-甜品<br>
+				<input type="checkbox" id="ft_univ_0_9">水玥<br>
+				<input type="checkbox" id="ft_univ_0_10">牛肉麵<br>
+				<input type="checkbox" id="ft_univ_0_11">聖明自助餐<br>
+				<input type="checkbox" id="ft_univ_0_12">花蓮扁食<br>
+				<input type="checkbox" id="ft_univ_0_13">鈺記燒臘<br>
+				<input type="checkbox" id="ft_univ_0_14">鍋燒麵<br>
+				<input type="checkbox" id="ft_univ_0_15">鐵漢子<br>
+				<input type="checkbox" id="ft_univ_0_16">麵線羹<br>
+			</div>
+			<div id="chk_layer_1" style="display: none">
+				<input type="checkbox" id="ft_univ_1_1">2F Café<br>
+				<input type="checkbox" id="ft_univ_1_2">美樂迪鬆餅屋<br>
+			</div>
+			<div id="chk_layer_2" style="display: none">
+				<input type="checkbox" id="ft_univ_2_1">丹堤咖啡<br>
+				<input type="checkbox" id="ft_univ_2_2">夠意思飲物吧<br>
+				<input type="checkbox" id="ft_univ_2_3">學生餐廳<br>
+				<input type="checkbox" id="ft_univ_2_4">歐巴斯餐飲<br>
+				<input type="checkbox" id="ft_univ_2_5">禾康餐廳<br>
+			</div>
+			<div id="chk_layer_3" style="display: none">
+				<input type="checkbox" id="ft_food_3_1">Fusion Table<br>
+				<input type="checkbox" id="hm_food_3_2">Heat Map<br>
+			</div>
+		</div>
+		<script>
+			function initMap() {
+				//載入地圖
+				var map=new google.maps.Map(document.getElementById('map'), {
+					center: {lat: 24.1476983, lng: 120.673837},
+					zoom: 12
+				});
+				
+				//載入FusionTables
+				
+				//市售食品中真菌毒素汙染監測計畫檢驗結果資料集
+				var ft_layer_1=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1u8BkunNc9HHW5P7CjXlo4jfQcd_NQiKzzEiDgbkw'
+					}, options: {styleId: 2}
+				});
+				//市售食品調查蔬果農藥殘留資料集
+				var ft_layer_2=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1gE0eJdUMnZgt5pnt6Gs77PnP6T-Cg2-0p7K919nt',
+						where: "col4 contains ignoring case \x27\u4e0d\x27"
+					}, options: {styleId: 2}
+				});
+				//市售食品中殘留動物用藥監測結果資料集
+				var ft_layer_3=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1VirO8E76HFPzLEkNWGhoNltgIVFJjDZh4kMDwuZn',
+						where: "col4 in (\x27Trimethoprim 0.66 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Trimethoprim 0.13 ppm (0.05)\x27, \x27Chloramphenicol 0.0014 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Florfenicol 0.051 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Florfenicol 0.121 ppm\u3001Florfenicol amine 0.015 ppm\uff0c\u5408\u8a080.136 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Leucomalachite green 0.0038 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Leucomalachite green 0.0068 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27, \x27Lincomycin 0.125 ppm (0.05)\x27, \x27Sulfadimethoxine 0.6 ppm (0.1)\x27, \x27Sulfamethoxazole 0.4 ppm (0.1)\x27, \x27Sulfamonomethoxine 0.24 ppm (0.1)\x27, \x27Trimethoprim 0.06 ppm (\u4e0d\u5f97\u6aa2\u51fa)\x27)"
+					}, options: {styleId: 2}
+				});
+				
+				//東海大學
+				//丼滋咔滋
+				var ft_layer_0_1=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u4e3c\u6ecb\u5494\u6ecb\x27"
+					}, options: {styleId: 2}
+				});
+				//佳佳快餐
+				var ft_layer_0_2=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u4f73\u4f73\u5feb\u9910\x27"
+					}, options: {styleId: 2}
+				});
+				//卡小姐焗烤
+				var ft_layer_0_3=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u5361\u5c0f\u59d0\u7117\u70e4\x27"
+					}, options: {styleId: 2}
+				});
+				//原傳食品-早餐,自助餐
+				var ft_layer_0_4=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u539f\u50b3\u98df\u54c1-\u65e9\u9910,\u81ea\u52a9\u9910\x27"
+					}, options: {styleId: 2}
+				});
+				//昕益外燴行-炒燴飯
+				var ft_layer_0_5=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u6615\u76ca\u5916\u71f4\u884c-\u7092\u71f4\u98ef\x27"
+					}, options: {styleId: 2}
+				});
+				//晨之味
+				var ft_layer_0_6=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u6668\u4e4b\u5473\x27"
+					}, options: {styleId: 2}
+				});
+				//東太山行-冷飲
+				var ft_layer_0_7=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u6771\u592a\u5c71\u884c-\u51b7\u98f2\x27"
+					}, options: {styleId: 2}
+				});
+				//東太山行-甜品
+				var ft_layer_0_8=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u6771\u592a\u5c71\u884c-\u751c\u54c1\x27"
+					}, options: {styleId: 2}
+				});
+				//水玥
+				var ft_layer_0_9=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u6c34\u73a5\x27"
+					}, options: {styleId: 2}
+				});
+				//牛肉麵
+				var ft_layer_0_10=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u725b\u8089\u9eb5\x27"
+					}, options: {styleId: 2}
+				});
+				//聖明自助餐
+				var ft_layer_0_11=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u8056\u660e\u81ea\u52a9\u9910\x27"
+					}, options: {styleId: 2}
+				});
+				//花蓮扁食
+				var ft_layer_0_12=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u82b1\u84ee\u6241\u98df\x27"
+					}, options: {styleId: 2}
+				});
+				//鈺記燒臘
+				var ft_layer_0_13=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u923a\u8a18\u71d2\u81d8\x27"
+					}, options: {styleId: 2}
+				});
+				//鍋燒麵
+				var ft_layer_0_14=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u934b\u71d2\u9eb5\x27"
+					}, options: {styleId: 2}
+				});
+				//鐵漢子
+				var ft_layer_0_15=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u9435\u6f22\u5b50\x27"
+					}, options: {styleId: 2}
+				});
+				//麵線羹
+				var ft_layer_0_16=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1Oymwi4kORNY15_kyXMO_l9LD5NXP2O14lkNq3rv7',
+						where: "col1 \x3d \x27\u9eb5\u7dda\u7fb9\x27"
+					}, options: {styleId: 2}
+				});
+				
+				//逢甲大學
+				//2F Café
+				var ft_layer_1_1=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1fIq6WleTRzsVdDxPdlISbgh6pbpGmbwsDZFtpTYN',
+						where: "col1 \x3d \x272F Caf\xe9\x27"
+					}, options: {styleId: 2}
+				});
+				//美樂迪鬆餅屋
+				var ft_layer_1_2=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1fIq6WleTRzsVdDxPdlISbgh6pbpGmbwsDZFtpTYN',
+						where: "col1 \x3d \x27\u7f8e\u6a02\u8fea\u9b06\u9905\u5c4b\x27"
+					}, options: {styleId: 2}
+				});
+				
+				//中興大學
+				//丹堤咖啡
+				var ft_layer_2_1=new google.maps.FusionTablesLayer({
+					query: {
+						from: '15-kf8AI9dVkYR9W7oPk1eCi85kHa9fnQwsj35-eJ',
+						where: "col1 \x3d \x27\u4e39\u5824\u5496\u5561\x27"
+					}, options: {styleId: 2}
+				});
+				//夠意思飲物吧
+				var ft_layer_2_2=new google.maps.FusionTablesLayer({
+					query: {
+						from: '15-kf8AI9dVkYR9W7oPk1eCi85kHa9fnQwsj35-eJ',
+						where: "col1 \x3d \x27\u5920\u610f\u601d\u98f2\u7269\u5427\x27"
+					}, options: {styleId: 2}
+				});
+				//學生餐廳
+				var ft_layer_2_3=new google.maps.FusionTablesLayer({
+					query: {
+						from: '15-kf8AI9dVkYR9W7oPk1eCi85kHa9fnQwsj35-eJ',
+						where: "col1 \x3d \x27\u5b78\u751f\u9910\u5ef3\x27"
+					}, options: {styleId: 2}
+				});
+				//歐巴斯餐飲
+				var ft_layer_2_4=new google.maps.FusionTablesLayer({
+					query: {
+						from: '15-kf8AI9dVkYR9W7oPk1eCi85kHa9fnQwsj35-eJ',
+						where: "col1 \x3d \x27\u6b50\u5df4\u65af\u9910\u98f2\x27"
+					}, options: {styleId: 2}
+				});
+				//禾康餐廳
+				var ft_layer_2_5=new google.maps.FusionTablesLayer({
+					query: {
+						from: '15-kf8AI9dVkYR9W7oPk1eCi85kHa9fnQwsj35-eJ',
+						where: "col1 \x3d \x27\u79be\u5eb7\u9910\u5ef3\x27"
+					}, options: {styleId: 2}
+				});
+				
+				//韓國首爾麻浦區施粥點
+				var ft_layer_3_1=new google.maps.FusionTablesLayer({
+					query: {
+						from: '1q6wHwX06BfRLg7Hi0Z0ncsvymOfvsHBLzWjIILYe'
+					}, options: {styleId: 2}
+				});
+				
+				//載入熱圖
+				
+				//韓國首爾麻浦區施粥點
+				var hm_layer_3_2=new google.maps.visualization.HeatmapLayer({
+					data: [
+						{location: new google.maps.LatLng(37.6933156802915,126.7892555802915), weight: 729.3},
+						{location: new google.maps.LatLng(37.6599081802915,126.7762624802915), weight: 190.62},
+						{location: new google.maps.LatLng(37.6481421802915,126.7983470802915), weight: 91.77},
+						{location: new google.maps.LatLng(37.69735208029149,126.8449585802915), weight: 245.7},
+						{location: new google.maps.LatLng(37.64394198029149,126.7830954802915), weight: 181.18},
+						{location: new google.maps.LatLng(37.69859428029149,126.7819635802915), weight: 15.05},
+						{location: new google.maps.LatLng(37.64227288029149,126.7853265802915), weight: 13.5},
+						{location: new google.maps.LatLng(37.6458733802915,126.7820169802915), weight: 69.84},
+						{location: new google.maps.LatLng(37.6603090802915,126.7925815802915), weight: 17.42},
+						{location: new google.maps.LatLng(37.6587304802915,126.7805917802915), weight: 101.62},
+						{location: new google.maps.LatLng(37.65419328029149,126.7884831802915), weight: 0},
+						{location: new google.maps.LatLng(37.69643508029149,126.7808877802915), weight: 8.25},
+						{location: new google.maps.LatLng(37.6552329802915,126.7814003802915), weight: 198.47},
+						{location: new google.maps.LatLng(37.66799818029149,126.7870536802915), weight: 194.92},
+						{location: new google.maps.LatLng(37.65560138029149,126.7803426802915), weight: 12.21},
+						{location: new google.maps.LatLng(37.6454353802915,126.7824455802915), weight: 190.08},
+						{location: new google.maps.LatLng(37.6693344802915,126.7753877802915), weight: 156.4},
+						{location: new google.maps.LatLng(37.6531892802915,126.7901188802915), weight: 160.44},
+						{location: new google.maps.LatLng(37.6509278802915,126.7857576802915), weight: 0},
+						{location: new google.maps.LatLng(37.6570483802915,126.7854924802915), weight: 152.25},
+						{location: new google.maps.LatLng(37.69736658029149,126.7838330802915), weight: 176.4},
+						{location: new google.maps.LatLng(37.6467786802915,126.7942580802915), weight: 0},
+						{location: new google.maps.LatLng(37.69162368029149,126.7848861802915), weight: 229.5},
+						{location: new google.maps.LatLng(37.67677088029149,126.7802021802915), weight: 151.59},
+						{location: new google.maps.LatLng(37.6482767802915,126.7792648802915), weight: 199.95},
+						{location: new google.maps.LatLng(37.6533471802915,126.7955999802915), weight: 0},
+						{location: new google.maps.LatLng(37.6517747802915,126.7789469802915), weight: 89.1},
+						{location: new google.maps.LatLng(37.6592186802915,126.7922172802915), weight: 209},
+						{location: new google.maps.LatLng(37.66518438029149,126.7842603802915), weight: 648},
+						{location: new google.maps.LatLng(37.66241378029149,126.7715755802915), weight: 205.5},
+						{location: new google.maps.LatLng(37.6719042802915,126.7792197802915), weight: 0},
+						{location: new google.maps.LatLng(37.6566854802915,126.7828045802915), weight: 33.6},
+						{location: new google.maps.LatLng(37.6583724802915,126.7879051802915), weight: 0},
+						{location: new google.maps.LatLng(37.6608482802915,126.7820304802915), weight: 180},
+						{location: new google.maps.LatLng(37.6398239802915,126.7873469802915), weight: 0},
+						{location: new google.maps.LatLng(37.6501166802915,126.7726849802915), weight: 727},
+						{location: new google.maps.LatLng(37.6741976802915,126.7793420802915), weight: 82.4},
+						{location: new google.maps.LatLng(37.6649979802915,126.7874992802915), weight: 184.5},
+						{location: new google.maps.LatLng(37.6542779802915,126.7870765802915), weight: 11.2},
+						{location: new google.maps.LatLng(37.65527368029149,126.7898096802915), weight: 509.76},
+						{location: new google.maps.LatLng(37.66673378029149,126.7837000802915), weight: 0},
+						{location: new google.maps.LatLng(37.6564134802915,126.7943752802915), weight: 186.6},
+						{location: new google.maps.LatLng(37.6520068802915,126.7922877802915), weight: 11.44},
+						{location: new google.maps.LatLng(37.6495820802915,126.7791584802915), weight: 0},
+						{location: new google.maps.LatLng(37.6431348802915,126.7841669802915), weight: 184.9},
+						{location: new google.maps.LatLng(37.7022316802915,126.8139285802915), weight: 455},
+						{location: new google.maps.LatLng(37.6532977802915,126.7743776802915), weight: 2594.3},
+						{location: new google.maps.LatLng(37.66785838029149,126.7980232802915), weight: 0},
+						{location: new google.maps.LatLng(37.65418908029149,126.7761308802915), weight: 0},
+						{location: new google.maps.LatLng(37.65490958029149,126.7754073802915), weight: 109.7},
+						{location: new google.maps.LatLng(37.7020436802915,126.7798318802915), weight: 100},
+						{location: new google.maps.LatLng(37.69805918029149,126.7842412802915), weight: 153},
+						{location: new google.maps.LatLng(37.67223638029149,126.7802311802915), weight: 0},
+						{location: new google.maps.LatLng(37.6524982802915,126.7846169802915), weight: 173.47},
+						{location: new google.maps.LatLng(37.69253708029149,126.7849608802915), weight: 183.6},
+						{location: new google.maps.LatLng(37.6861019802915,126.7832009802915), weight: 233.46},
+						{location: new google.maps.LatLng(37.6642324802915,126.7712769802915), weight: 99},
+						{location: new google.maps.LatLng(37.6704466802915,126.8077498802915), weight: 211.68},
+						{location: new google.maps.LatLng(37.6656218802915,126.8012748802915), weight: 10.8},
+						{location: new google.maps.LatLng(37.64478808029149,126.7850237802915), weight: 12},
+						{location: new google.maps.LatLng(37.6462823802915,126.7855874802915), weight: 21},
+						{location: new google.maps.LatLng(37.65156168029149,126.7773389802915), weight: 12.25},
+						{location: new google.maps.LatLng(37.65214658029149,126.7883430802915), weight: 12},
+						{location: new google.maps.LatLng(37.67473508029149,126.7936375802915), weight: 12.01},
+						{location: new google.maps.LatLng(37.6967158802915,126.8368962802915), weight: 20},
+						{location: new google.maps.LatLng(37.6509623802915,126.7899805802915), weight: 12},
+						{location: new google.maps.LatLng(37.6872371802915,126.7811892802915), weight: 15.3},
+						{location: new google.maps.LatLng(37.6610100802915,126.7691620802915), weight: 127.23},
+						{location: new google.maps.LatLng(37.67370148029149,126.7979379802915), weight: 401.4},
+						{location: new google.maps.LatLng(37.67052708029149,126.8037665802915), weight: 432.26},
+						{location: new google.maps.LatLng(37.66949348029149,126.8020646802915), weight: 719.28},
+						{location: new google.maps.LatLng(37.6650625802915,126.7669824802915), weight: 53.66},
+						{location: new google.maps.LatLng(37.66140798029149,126.7877254802915), weight: 20.79},
+						{location: new google.maps.LatLng(37.6603595802915,126.7701996802915), weight: 216.51},
+						{location: new google.maps.LatLng(37.68225478029149,126.7877520802915), weight: 756},
+						{location: new google.maps.LatLng(37.6660888802915,126.8000636802915), weight: 639.6},
+						{location: new google.maps.LatLng(37.68104398029149,126.7822599802915), weight: 787.5},
+						{location: new google.maps.LatLng(37.6653847802915,126.7995841802915), weight: 40.51},
+						{location: new google.maps.LatLng(37.68338798029151,126.7885158802915), weight: 758.88},
+						{location: new google.maps.LatLng(37.6723641802915,126.8042970802915), weight: 385.73},
+						{location: new google.maps.LatLng(37.66474298029149,126.7688192802915), weight: 52.25},
+						{location: new google.maps.LatLng(37.67435878029149,126.7983455802915), weight: 24},
+						{location: new google.maps.LatLng(37.6563240802915,126.7926903802915), weight: 10.8},
+						{location: new google.maps.LatLng(37.68386518029151,126.7823657802915), weight: 154.5},
+						{location: new google.maps.LatLng(37.6690243802915,126.8095646802915), weight: 32.16},
+						{location: new google.maps.LatLng(37.66518438029149,126.7842603802915), weight: 821.4},
+						{location: new google.maps.LatLng(37.6779887802915,126.7993865802915), weight: 71.3},
+						{location: new google.maps.LatLng(37.6530703802915,126.7943454802915), weight: 6.67},
+						{location: new google.maps.LatLng(37.67631298029149,126.7883895802915), weight: 96.72},
+						{location: new google.maps.LatLng(37.7157864802915,126.8185109802915), weight: 454.57},
+						{location: new google.maps.LatLng(37.6518355802915,126.7961570802915), weight: 859.46},
+						{location: new google.maps.LatLng(37.7280002802915,126.7962566802915), weight: 64.11},
+						{location: new google.maps.LatLng(37.70031178029149,126.8498293802915), weight: 21.94},
+						{location: new google.maps.LatLng(37.6931178802915,126.7817822802915), weight: 8.99},
+						{location: new google.maps.LatLng(37.6436828802915,126.7866349802915), weight: 251.2},
+						{location: new google.maps.LatLng(37.68483868029149,126.8128592802915), weight: 600.39},
+						{location: new google.maps.LatLng(37.6436828802915,126.7866349802915), weight: 17.64},
+						{location: new google.maps.LatLng(37.6422885802915,126.7914743802915), weight: 0},
+						{location: new google.maps.LatLng(37.6882260802915,126.7833226802915), weight: 39.25},
+						{location: new google.maps.LatLng(37.6534806802915,126.7848128802915), weight: 12},
+						{location: new google.maps.LatLng(37.6599081802915,126.7762624802915), weight: 23.1},
+						{location: new google.maps.LatLng(37.7023044802915,126.8483220802915), weight: 17.94},
+						{location: new google.maps.LatLng(37.68483868029149,126.8128592802915), weight: 24.01},
+						{location: new google.maps.LatLng(37.6839703802915,126.8175403802915), weight: 9.36},
+						{location: new google.maps.LatLng(37.68483868029149,126.8128592802915), weight: 9.1},
+						{location: new google.maps.LatLng(37.64606578029149,126.7864318802915), weight: 116.45},
+						{location: new google.maps.LatLng(37.6551969802915,126.7784465802915), weight: 90.72},
+						{location: new google.maps.LatLng(37.6941710802915,126.7823024802915), weight: 42.18},
+						{location: new google.maps.LatLng(37.6460501802915,126.7857895802915), weight: 80.08},
+						{location: new google.maps.LatLng(37.70207148029149,126.8342553802915), weight: 99.32},
+						{location: new google.maps.LatLng(37.68536518029149,126.7805136802915), weight: 93.93},
+						{location: new google.maps.LatLng(37.67689128029149,126.8128067802915), weight: 8.71},
+						{location: new google.maps.LatLng(37.70262528029149,126.8335809802915), weight: 119.27},
+						{location: new google.maps.LatLng(37.6950023802915,126.7814803802915), weight: 27.31},
+						{location: new google.maps.LatLng(37.70262528029149,126.8335809802915), weight: 54.2},
+						{location: new google.maps.LatLng(37.6422885802915,126.7914743802915), weight: 49.26},
+						{location: new google.maps.LatLng(37.6452542802915,126.7868937802915), weight: 13.71},
+						{location: new google.maps.LatLng(37.6422885802915,126.7914743802915), weight: 290.9},
+						{location: new google.maps.LatLng(37.6638683802915,126.7717862802915), weight: 541.4},
+						{location: new google.maps.LatLng(37.70855968029149,126.8138615802915), weight: 0},
+						{location: new google.maps.LatLng(37.6709860802915,126.7754841802915), weight: 0},
+						{location: new google.maps.LatLng(37.6385105802915,126.7891401802915), weight: 906.74},
+						{location: new google.maps.LatLng(37.6491341802915,126.7837664802915), weight: 102.3},
+						{location: new google.maps.LatLng(37.6721383802915,126.7872287802915), weight: 114},
+						{location: new google.maps.LatLng(37.66855358029149,126.8027691802915), weight: 81.09}
+					],
+					'opacity': 0.5,
+					'radius': 50
+				});
+				
+				
+				//連結Layer與List
+				document.getElementById('chk_list').onchange=function() {
+					//建立Div物件
+					var food=document.getElementById('food_list');
+					var chk_0=document.getElementById('chk_layer_0');
+					var chk_1=document.getElementById('chk_layer_1');
+					var chk_2=document.getElementById('chk_layer_2');
+					var chk_3=document.getElementById('chk_layer_3');
+					
+					//屏蔽所有大學的食品供應商
+					chk_0.style.display='none';
+					chk_1.style.display='none';
+					chk_2.style.display='none';
+					chk_3.style.display='none';
+					
+					//初始化食品供應商清單
+					food.style.display='';
+					document.getElementById('ft_univ_0_1').checked=false; ft_layer_0_1.setMap(null);
+					document.getElementById('ft_univ_0_2').checked=false; ft_layer_0_2.setMap(null);
+					document.getElementById('ft_univ_0_3').checked=false; ft_layer_0_3.setMap(null);
+					document.getElementById('ft_univ_0_4').checked=false; ft_layer_0_4.setMap(null);
+					document.getElementById('ft_univ_0_5').checked=false; ft_layer_0_5.setMap(null);
+					document.getElementById('ft_univ_0_6').checked=false; ft_layer_0_6.setMap(null);
+					document.getElementById('ft_univ_0_7').checked=false; ft_layer_0_7.setMap(null);
+					document.getElementById('ft_univ_0_8').checked=false; ft_layer_0_8.setMap(null);
+					document.getElementById('ft_univ_0_9').checked=false; ft_layer_0_9.setMap(null);
+					document.getElementById('ft_univ_0_10').checked=false; ft_layer_0_10.setMap(null);
+					document.getElementById('ft_univ_0_11').checked=false; ft_layer_0_11.setMap(null);
+					document.getElementById('ft_univ_0_12').checked=false; ft_layer_0_12.setMap(null);
+					document.getElementById('ft_univ_0_13').checked=false; ft_layer_0_13.setMap(null);
+					document.getElementById('ft_univ_0_14').checked=false; ft_layer_0_14.setMap(null);
+					document.getElementById('ft_univ_0_15').checked=false; ft_layer_0_15.setMap(null);
+					document.getElementById('ft_univ_0_16').checked=false; ft_layer_0_16.setMap(null);
+					document.getElementById('ft_univ_1_1').checked=false; ft_layer_1_1.setMap(null);
+					document.getElementById('ft_univ_1_2').checked=false; ft_layer_1_2.setMap(null);
+					document.getElementById('ft_univ_2_1').checked=false; ft_layer_2_1.setMap(null);
+					document.getElementById('ft_univ_2_2').checked=false; ft_layer_2_2.setMap(null);
+					document.getElementById('ft_univ_2_3').checked=false; ft_layer_2_3.setMap(null);
+					document.getElementById('ft_univ_2_4').checked=false; ft_layer_2_4.setMap(null);
+					document.getElementById('ft_univ_2_5').checked=false; ft_layer_2_5.setMap(null);
+					document.getElementById('ft_food_3_1').checked=false; ft_layer_3_1.setMap(null);
+					document.getElementById('hm_food_3_2').checked=false; hm_layer_3_2.setMap(null);
+					
+					//顯示選取大學的食品供應商
+					switch(document.getElementById('chk_list').options[document.getElementById('chk_list').options.selectedIndex].id) {
+						case '0':
+							chk_0.style.display='';
+							map.setCenter({lat: 24.1815905, lng: 120.6031219});
+							break;
+						case '1':
+							chk_1.style.display='';
+							map.setCenter({lat: 24.1788127, lng: 120.6467003});
+							break;
+						case '2':
+							chk_2.style.display='';
+							map.setCenter({lat: 24.123543, lng: 120.675324});
+							break;
+						case '3':
+							chk_3.style.display='';
+							food.style.display='none';
+							document.getElementById('ft_1').checked=false; ft_layer_1.setMap(null);
+							document.getElementById('ft_2').checked=false; ft_layer_2.setMap(null);
+							document.getElementById('ft_3').checked=false; ft_layer_3.setMap(null);
+							map.setCenter({lat: 37.6587998, lng: 126.7841162});
+							break;
+					}
+				}
+				
+				//連結FusionTables與Checkbox
+				document.getElementById('ft_1').onchange=function() {ft_layer_1.setMap(document.getElementById('ft_1').checked?map:null);}
+				document.getElementById('ft_2').onchange=function() {ft_layer_2.setMap(document.getElementById('ft_2').checked?map:null);}
+				document.getElementById('ft_3').onchange=function() {ft_layer_3.setMap(document.getElementById('ft_3').checked?map:null);}
+				document.getElementById('ft_univ_0_1').onchange=function() {ft_layer_0_1.setMap(document.getElementById('ft_univ_0_1').checked?map:null);}
+				document.getElementById('ft_univ_0_2').onchange=function() {ft_layer_0_2.setMap(document.getElementById('ft_univ_0_2').checked?map:null);}
+				document.getElementById('ft_univ_0_3').onchange=function() {ft_layer_0_3.setMap(document.getElementById('ft_univ_0_3').checked?map:null);}
+				document.getElementById('ft_univ_0_4').onchange=function() {ft_layer_0_4.setMap(document.getElementById('ft_univ_0_4').checked?map:null);}
+				document.getElementById('ft_univ_0_5').onchange=function() {ft_layer_0_5.setMap(document.getElementById('ft_univ_0_5').checked?map:null);}
+				document.getElementById('ft_univ_0_6').onchange=function() {ft_layer_0_6.setMap(document.getElementById('ft_univ_0_6').checked?map:null);}
+				document.getElementById('ft_univ_0_7').onchange=function() {ft_layer_0_7.setMap(document.getElementById('ft_univ_0_7').checked?map:null);}
+				document.getElementById('ft_univ_0_8').onchange=function() {ft_layer_0_8.setMap(document.getElementById('ft_univ_0_8').checked?map:null);}
+				document.getElementById('ft_univ_0_9').onchange=function() {ft_layer_0_9.setMap(document.getElementById('ft_univ_0_9').checked?map:null);}
+				document.getElementById('ft_univ_0_10').onchange=function() {ft_layer_0_10.setMap(document.getElementById('ft_univ_0_10').checked?map:null);}
+				document.getElementById('ft_univ_0_11').onchange=function() {ft_layer_0_11.setMap(document.getElementById('ft_univ_0_11').checked?map:null);}
+				document.getElementById('ft_univ_0_12').onchange=function() {ft_layer_0_12.setMap(document.getElementById('ft_univ_0_12').checked?map:null);}
+				document.getElementById('ft_univ_0_13').onchange=function() {ft_layer_0_13.setMap(document.getElementById('ft_univ_0_13').checked?map:null);}
+				document.getElementById('ft_univ_0_14').onchange=function() {ft_layer_0_14.setMap(document.getElementById('ft_univ_0_14').checked?map:null);}
+				document.getElementById('ft_univ_0_15').onchange=function() {ft_layer_0_15.setMap(document.getElementById('ft_univ_0_15').checked?map:null);}
+				document.getElementById('ft_univ_0_16').onchange=function() {ft_layer_0_16.setMap(document.getElementById('ft_univ_0_16').checked?map:null);}
+				document.getElementById('ft_univ_1_1').onchange=function() {ft_layer_1_1.setMap(document.getElementById('ft_univ_1_1').checked?map:null);}
+				document.getElementById('ft_univ_1_2').onchange=function() {ft_layer_1_2.setMap(document.getElementById('ft_univ_1_2').checked?map:null);}
+				document.getElementById('ft_univ_2_1').onchange=function() {ft_layer_2_1.setMap(document.getElementById('ft_univ_2_1').checked?map:null);}
+				document.getElementById('ft_univ_2_2').onchange=function() {ft_layer_2_2.setMap(document.getElementById('ft_univ_2_2').checked?map:null);}
+				document.getElementById('ft_univ_2_3').onchange=function() {ft_layer_2_3.setMap(document.getElementById('ft_univ_2_3').checked?map:null);}
+				document.getElementById('ft_univ_2_4').onchange=function() {ft_layer_2_4.setMap(document.getElementById('ft_univ_2_4').checked?map:null);}
+				document.getElementById('ft_univ_2_5').onchange=function() {ft_layer_2_5.setMap(document.getElementById('ft_univ_2_5').checked?map:null);}
+				document.getElementById('ft_food_3_1').onchange=function() {ft_layer_3_1.setMap(document.getElementById('ft_food_3_1').checked?map:null);}
+				document.getElementById('hm_food_3_2').onchange=function() {hm_layer_3_2.setMap(document.getElementById('hm_food_3_2').checked?map:null);}
+			}
+		</script>
+		<script async defer
+		src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkm4zHeX_mNojWn4cqhC3Rq32xrNASwsw&libraries=visualization&callback=initMap">
+		</script>
+	</body>
+</html>
